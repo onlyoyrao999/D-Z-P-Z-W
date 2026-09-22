@@ -1,0 +1,6 @@
+{
+  "name": "高燃武打提示词扩写专家",
+  "description": "顶级动作导演与好莱坞电影工业级武打提示词优化与扩写工作台，内置32条高燃武打核心库与终极奥义库，支持空间站位记忆点与豆包/Codex一键安装。",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
