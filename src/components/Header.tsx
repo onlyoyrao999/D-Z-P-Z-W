@@ -82,7 +82,7 @@ export const Header: React.FC<HeaderProps> = ({
             className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-red-950/50 hover:bg-red-900/60 text-red-200 border border-red-700/50 rounded-lg transition shadow-sm"
           >
             <BookOpen className="w-3.5 h-3.5 text-red-400" />
-            终极奥义库 (50+)
+            终极奥义库 (111+)
           </button>
 
           <button

@@ -385,7 +385,7 @@ export default function App() {
                       onClick={() => setIsUltimateModalOpen(true)}
                       className="text-xs font-semibold px-2.5 py-1 rounded bg-red-950/80 text-red-300 border border-red-800/80 hover:bg-red-900/90 transition flex items-center gap-1"
                     >
-                      {selectedUltimate ? selectedUltimate.name : '选择奥义 (50+)'}
+                      {selectedUltimate ? selectedUltimate.name : `选择奥义 (${ULTIMATE_MOVES.length})`}
                       <span className="text-[10px] text-zinc-400 ml-1">切换</span>
                     </button>
                   )}
