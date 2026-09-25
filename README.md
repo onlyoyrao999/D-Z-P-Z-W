@@ -1,4 +1,9 @@
-# 高燃武打提示词优化与扩写专家 (动作武打戏自动填充 Skill)
+# 高燃武打提示词优化与扩写专家 (顶级动作：onlyno999)
+
+- **技能名字**：`顶级动作：onlyno999`
+- **作者**：`onlyno999`
+- **标准定义文件**：[`SKILL.md`](./SKILL.md)
+- **支持平台**：豆包 (Doubao) / Codex / GPTs / Claude / Coze / AI Studio
 
 > **顶级动作导演与好莱坞 AI 视觉特效专家合体打造**  
 > 专为解决 AI 生图与视频生成（Sora、Kling、Runway、Midjourney、即梦、豆包等）中“打斗动作发飘、无重力漂浮、肢体崩坏、人物不连贯、缺乏电影质感”而生的工业级 Skill。
