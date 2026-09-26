@@ -46,7 +46,7 @@ export const DoubaoInstallModal: React.FC<Props> = ({ isOpen, onClose }) => {
                 安装到 豆包 (Doubao) / Codex / GPTs / Claude
               </h2>
               <p className="text-xs text-zinc-400">
-                支持直接将【高燃武打提示词优化与扩写专家】完整工业级 Skill 注入任何 AI 智能体
+                支持直接将【顶级动作onlyno999】（作者：onlyno999）完整工业级 Skill 注入任何 AI 智能体
               </p>
             </div>
           </div>
