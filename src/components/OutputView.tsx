@@ -9,7 +9,12 @@ import {
   ShieldAlert,
   Flame,
   Zap,
-  Camera
+  Camera,
+  Volume2,
+  Clock,
+  Sliders,
+  Code,
+  Download
 } from 'lucide-react';
 import { PromptGenerationResponse } from '../types';
 
@@ -18,7 +23,7 @@ interface Props {
 }
 
 export const OutputView: React.FC<Props> = ({ result }) => {
-  const [activeTab, setActiveTab] = useState<'markdown' | 'director' | 'prompts'>('markdown');
+  const [activeTab, setActiveTab] = useState<'shotcraft' | 'markdown' | 'prompts' | 'remotion' | 'jianying'>('shotcraft');
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
 
   const copyToClipboard = async (text: string, key: string) => {
@@ -31,307 +36,354 @@ export const OutputView: React.FC<Props> = ({ result }) => {
     }
   };
 
+  const downloadFile = (content: string, filename: string, type = 'text/plain') => {
+    const blob = new Blob([content], { type });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const getEnergyBadge = (level: number) => {
+    const colors = [
+      '',
+      'bg-blue-950 text-blue-400 border-blue-800',
+      'bg-cyan-950 text-cyan-400 border-cyan-800',
+      'bg-amber-950 text-amber-400 border-amber-800',
+      'bg-orange-950 text-orange-400 border-orange-800',
+      'bg-red-950 text-red-400 border-red-700 animate-pulse'
+    ];
+    return (
+      <span className={`px-2 py-0.5 text-[10px] font-bold rounded-full border ${colors[level] || colors[3]}`}>
+        能量 ⚡ {level}/5
+      </span>
+    );
+  };
+
   return (
-    <div className="bg-zinc-900/90 border border-zinc-800 rounded-xl overflow-hidden shadow-lg flex flex-col">
+    <div className="bg-zinc-900/90 border border-zinc-800 rounded-xl overflow-hidden shadow-xl flex flex-col">
       {/* Top Header & Tab Controls */}
       <div className="p-3 sm:p-4 bg-zinc-950 border-b border-zinc-800 flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-center gap-2">
-          <div className="p-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-400">
-            <Film className="w-4 h-4" />
+        <div className="flex items-center gap-2.5">
+          <div className="p-2 rounded-xl bg-gradient-to-br from-amber-500 to-red-600 text-white shadow-md shadow-red-950/40">
+            <Film className="w-5 h-5" />
           </div>
           <div>
-            <h3 className="text-sm font-bold text-zinc-100 flex items-center gap-2">
-              好莱坞动作导演交付物
+            <div className="flex items-center gap-2">
+              <h3 className="text-sm sm:text-base font-bold text-zinc-100 flex items-center gap-2">
+                Video-Shotcraft × 顶级动作工业级交付物
+              </h3>
               {result.triggeredUltimate && (
                 <span className="text-[11px] px-2 py-0.5 rounded-full bg-red-950 text-red-400 border border-red-800 flex items-center gap-1">
                   <Flame className="w-3 h-3" /> 已锁定终极奥义
                 </span>
               )}
-            </h3>
+            </div>
             <span className="text-[11px] text-zinc-400">
-              严格按照工业级 Markdown 代码块交付标准呈现
+              融合 Shot Recipe Cards 分镜配方体系与四大空间坐标死锁
             </span>
           </div>
         </div>
 
-        {/* Tab switchers */}
-        <div className="flex items-center gap-1 bg-zinc-900 p-1 rounded-lg border border-zinc-800 text-xs">
+        {/* Action button */}
+        <div className="flex items-center gap-2">
           <button
-            onClick={() => setActiveTab('markdown')}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md font-medium transition ${
-              activeTab === 'markdown'
-                ? 'bg-amber-500 text-black font-semibold'
-                : 'text-zinc-400 hover:text-zinc-200'
-            }`}
+            onClick={() => copyToClipboard(result.markdownOutput, 'full')}
+            className="flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold bg-gradient-to-r from-amber-500 to-red-600 hover:brightness-110 text-zinc-950 rounded-lg transition shadow-md"
           >
-            <Code2 className="w-3.5 h-3.5" />
-            Markdown 交付包 (规范原格式)
-          </button>
-          <button
-            onClick={() => setActiveTab('director')}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md font-medium transition ${
-              activeTab === 'director'
-                ? 'bg-amber-500 text-black font-semibold'
-                : 'text-zinc-400 hover:text-zinc-200'
-            }`}
-          >
-            <Layers className="w-3.5 h-3.5" />
-            分镜导演视界 (卡片解析)
-          </button>
-          <button
-            onClick={() => setActiveTab('prompts')}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md font-medium transition ${
-              activeTab === 'prompts'
-                ? 'bg-amber-500 text-black font-semibold'
-                : 'text-zinc-400 hover:text-zinc-200'
-            }`}
-          >
-            <Sparkles className="w-3.5 h-3.5" />
-            AI Prompt 提纯速取
+            {copiedKey === 'full' ? (
+              <>
+                <Check className="w-3.5 h-3.5 text-emerald-950" />
+                已复制完整交付包
+              </>
+            ) : (
+              <>
+                <Copy className="w-3.5 h-3.5" />
+                一键复制交付包
+              </>
+            )}
           </button>
         </div>
+      </div>
 
-        {/* Quick Global Copy */}
+      {/* Secondary Tab Bar */}
+      <div className="px-3 py-2 bg-zinc-950/80 border-b border-zinc-800 flex items-center gap-1.5 overflow-x-auto text-xs">
         <button
-          onClick={() => copyToClipboard(result.markdownOutput, 'full')}
-          className="flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold bg-zinc-800 hover:bg-zinc-700 text-amber-300 border border-zinc-700 rounded-lg transition"
+          onClick={() => setActiveTab('shotcraft')}
+          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-medium whitespace-nowrap transition ${
+            activeTab === 'shotcraft'
+              ? 'bg-amber-500 text-zinc-950 font-bold shadow-md shadow-amber-500/20'
+              : 'text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800'
+          }`}
         >
-          {copiedKey === 'full' ? (
-            <>
-              <Check className="w-3.5 h-3.5 text-emerald-400" />
-              已全量复制！
-            </>
-          ) : (
-            <>
-              <Copy className="w-3.5 h-3.5" />
-              一键复制 Markdown
-            </>
-          )}
+          <Layers className="w-3.5 h-3.5" />
+          分镜工坊卡片 (Shot Recipe Cards)
+        </button>
+        <button
+          onClick={() => setActiveTab('markdown')}
+          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-medium whitespace-nowrap transition ${
+            activeTab === 'markdown'
+              ? 'bg-amber-500 text-zinc-950 font-bold shadow-md shadow-amber-500/20'
+              : 'text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800'
+          }`}
+        >
+          <Code2 className="w-3.5 h-3.5" />
+          Markdown 规范文本
+        </button>
+        <button
+          onClick={() => setActiveTab('prompts')}
+          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-medium whitespace-nowrap transition ${
+            activeTab === 'prompts'
+              ? 'bg-amber-500 text-zinc-950 font-bold shadow-md shadow-amber-500/20'
+              : 'text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800'
+          }`}
+        >
+          <Sparkles className="w-3.5 h-3.5" />
+          AI Video Prompt 提纯
+        </button>
+        <button
+          onClick={() => setActiveTab('remotion')}
+          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-medium whitespace-nowrap transition ${
+            activeTab === 'remotion'
+              ? 'bg-amber-500 text-zinc-950 font-bold shadow-md shadow-amber-500/20'
+              : 'text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800'
+          }`}
+        >
+          <Code className="w-3.5 h-3.5" />
+          Remotion 时间线 (JSON)
+        </button>
+        <button
+          onClick={() => setActiveTab('jianying')}
+          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-medium whitespace-nowrap transition ${
+            activeTab === 'jianying'
+              ? 'bg-amber-500 text-zinc-950 font-bold shadow-md shadow-amber-500/20'
+              : 'text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800'
+          }`}
+        >
+          <Film className="w-3.5 h-3.5" />
+          剪映/CapCut 分轨草稿
         </button>
       </div>
 
-      {/* Main Tab Content */}
-      <div className="p-4 sm:p-5 flex-1 min-h-[420px] max-h-[680px] overflow-y-auto">
-        {/* TAB 1: Raw Markdown format */}
-        {activeTab === 'markdown' && (
-          <div className="space-y-3">
-            <div className="flex items-center justify-between text-xs text-zinc-400 pb-1">
-              <span>遵照输出铁律：纯 Markdown 格式交付，无多余寒暄，包含分镜动作细化与通用 Prompt</span>
+      {/* Tab 1: Shotcraft Visual Cards */}
+      {activeTab === 'shotcraft' && (
+        <div className="p-4 sm:p-6 space-y-4 max-h-[75vh] overflow-y-auto">
+          {/* Spatial Anchor Pill Bar */}
+          <div className="p-3.5 rounded-xl bg-zinc-950 border border-zinc-800 flex flex-wrap items-center justify-between gap-3 text-xs">
+            <div className="flex items-center gap-2">
+              <span className="font-bold text-amber-400">全局空间锁基准:</span>
+              <span className="text-zinc-300 font-mono text-[11px] truncate max-w-xl">
+                {result.spatialAnchorsFormatted}
+              </span>
+            </div>
+            <button
+              onClick={() => copyToClipboard(result.spatialAnchorsFormatted, 'spatial')}
+              className="px-2.5 py-1 text-[11px] bg-zinc-800 hover:bg-zinc-700 text-zinc-300 rounded border border-zinc-700 transition"
+            >
+              {copiedKey === 'spatial' ? '已复制' : '复制空间基准'}
+            </button>
+          </div>
+
+          {/* Shot Sequence Cards */}
+          {result.shotSequence && result.shotSequence.length > 0 ? (
+            <div className="space-y-4">
+              {result.shotSequence.map((shot) => (
+                <div
+                  key={shot.shotNumber}
+                  className="p-4 sm:p-5 rounded-2xl bg-zinc-950/80 border border-zinc-800 hover:border-amber-500/50 transition-all shadow-md space-y-3"
+                >
+                  <div className="flex flex-wrap items-center justify-between gap-2 border-b border-zinc-800/80 pb-2.5">
+                    <div className="flex items-center gap-2.5">
+                      <span className="w-6 h-6 rounded-lg bg-amber-500/20 border border-amber-500/40 text-amber-400 font-bold text-xs flex items-center justify-center">
+                        {shot.shotNumber}
+                      </span>
+                      <h4 className="font-bold text-sm sm:text-base text-zinc-100">
+                        {shot.shotName}
+                      </h4>
+                      {getEnergyBadge(shot.recipe.energyLevel)}
+                    </div>
+                    <button
+                      onClick={() => copyToClipboard(shot.promptEn, `shot_${shot.shotNumber}`)}
+                      className="flex items-center gap-1 px-2.5 py-1 text-xs bg-zinc-900 hover:bg-zinc-800 text-amber-300 border border-zinc-700 rounded-lg transition"
+                    >
+                      {copiedKey === `shot_${shot.shotNumber}` ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
+                      复制 Shot {shot.shotNumber} Prompt
+                    </button>
+                  </div>
+
+                  {/* Storyboard & Framing */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+                    <div className="p-3 rounded-xl bg-zinc-900/60 border border-zinc-800/70">
+                      <div className="text-zinc-400 font-semibold mb-1 flex items-center gap-1.5">
+                        <Film className="w-3.5 h-3.5 text-amber-400" /> 分镜剧本发力规划
+                      </div>
+                      <p className="text-zinc-200 leading-relaxed">{shot.storyboard}</p>
+                    </div>
+
+                    <div className="p-3 rounded-xl bg-zinc-900/60 border border-zinc-800/70">
+                      <div className="text-zinc-400 font-semibold mb-1 flex items-center gap-1.5">
+                        <Sliders className="w-3.5 h-3.5 text-cyan-400" /> 运镜与景别构图
+                      </div>
+                      <p className="text-zinc-200 leading-relaxed font-mono">{shot.cameraSpecs}</p>
+                    </div>
+                  </div>
+
+                  {/* Audio & Remotion parameters */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+                    <div className="p-2.5 rounded-xl bg-zinc-900/40 border border-zinc-800/60 flex items-start gap-2">
+                      <Volume2 className="w-3.5 h-3.5 text-red-400 shrink-0 mt-0.5" />
+                      <div>
+                        <span className="font-semibold text-zinc-400">音效设计 (Sound Cues): </span>
+                        <span className="text-zinc-300">{shot.soundDesign}</span>
+                      </div>
+                    </div>
+
+                    <div className="p-2.5 rounded-xl bg-zinc-900/40 border border-zinc-800/60 flex items-start gap-2">
+                      <Code className="w-3.5 h-3.5 text-emerald-400 shrink-0 mt-0.5" />
+                      <div>
+                        <span className="font-semibold text-zinc-400">Remotion 动力学: </span>
+                        <code className="text-emerald-300 font-mono text-[11px]">{shot.recipe.remotionKinematics}</code>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="p-4 rounded-xl bg-zinc-950 border border-zinc-800 text-xs text-zinc-300 leading-relaxed whitespace-pre-wrap font-mono">
+              {result.part1Storyboard}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Tab 2: Raw Markdown Code Block */}
+      {activeTab === 'markdown' && (
+        <div className="p-4 sm:p-6 space-y-3">
+          <div className="flex items-center justify-between text-xs text-zinc-400">
+            <span>标准单代码块交付格式 (包裹于单一 ```markdown 代码块中)</span>
+            <button
+              onClick={() => downloadFile(result.markdownOutput, '顶级动作onlyno999_分镜交付包.md')}
+              className="flex items-center gap-1 text-amber-400 hover:underline"
+            >
+              <Download className="w-3.5 h-3.5" /> 下载 .md 文件
+            </button>
+          </div>
+          <pre className="p-4 rounded-xl bg-black border border-zinc-800 text-xs font-mono text-zinc-200 overflow-x-auto max-h-[70vh] whitespace-pre-wrap leading-relaxed select-all">
+            {result.markdownOutput}
+          </pre>
+        </div>
+      )}
+
+      {/* Tab 3: AI Prompts */}
+      {activeTab === 'prompts' && (
+        <div className="p-4 sm:p-6 space-y-4 max-h-[75vh] overflow-y-auto">
+          {/* Positive Prompt EN */}
+          <div className="p-4 rounded-xl bg-zinc-950 border border-zinc-800 space-y-2">
+            <div className="flex items-center justify-between">
+              <div className="text-xs font-bold text-amber-400 flex items-center gap-1.5">
+                <Sparkles className="w-4 h-4" /> 英文通用 Prompt (Sora / Kling / Runway Gen-3 / Midjourney)
+              </div>
               <button
-                onClick={() => copyToClipboard(result.markdownOutput, 'raw')}
-                className="text-amber-400 hover:text-amber-300 font-medium flex items-center gap-1"
+                onClick={() => copyToClipboard(result.positivePromptEn, 'prompt_en')}
+                className="flex items-center gap-1 px-2.5 py-1 text-xs bg-zinc-800 hover:bg-zinc-700 text-zinc-200 rounded border border-zinc-700 transition"
               >
-                {copiedKey === 'raw' ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
-                复制纯文本
+                {copiedKey === 'prompt_en' ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
+                复制英文 Prompt
               </button>
             </div>
-            <div className="bg-zinc-950 rounded-xl p-4 border border-zinc-800 font-mono text-xs text-zinc-200 leading-relaxed overflow-x-auto select-all">
-              <pre className="whitespace-pre-wrap">{result.markdownOutput}</pre>
+            <pre className="p-3 rounded-lg bg-zinc-900/90 text-xs font-mono text-zinc-200 whitespace-pre-wrap leading-relaxed border border-zinc-800 select-all">
+              {result.positivePromptEn}
+            </pre>
+          </div>
+
+          {/* Positive Prompt ZH */}
+          <div className="p-4 rounded-xl bg-zinc-950 border border-zinc-800 space-y-2">
+            <div className="flex items-center justify-between">
+              <div className="text-xs font-bold text-amber-400 flex items-center gap-1.5">
+                <Sparkles className="w-4 h-4" /> 中文通用 Prompt (豆包 / 即梦 / 通义万相)
+              </div>
+              <button
+                onClick={() => copyToClipboard(result.positivePromptZh, 'prompt_zh')}
+                className="flex items-center gap-1 px-2.5 py-1 text-xs bg-zinc-800 hover:bg-zinc-700 text-zinc-200 rounded border border-zinc-700 transition"
+              >
+                {copiedKey === 'prompt_zh' ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
+                复制中文 Prompt
+              </button>
+            </div>
+            <pre className="p-3 rounded-lg bg-zinc-900/90 text-xs font-mono text-zinc-200 whitespace-pre-wrap leading-relaxed border border-zinc-800 select-all">
+              {result.positivePromptZh}
+            </pre>
+          </div>
+
+          {/* Negative Prompt */}
+          <div className="p-4 rounded-xl bg-zinc-950 border border-red-900/40 space-y-2">
+            <div className="flex items-center justify-between">
+              <div className="text-xs font-bold text-red-400 flex items-center gap-1.5">
+                <ShieldAlert className="w-4 h-4" /> 电影级专属 Negative Prompt (固定反向约束)
+              </div>
+              <button
+                onClick={() => copyToClipboard(result.negativePrompt, 'prompt_neg')}
+                className="flex items-center gap-1 px-2.5 py-1 text-xs bg-zinc-800 hover:bg-zinc-700 text-zinc-200 rounded border border-zinc-700 transition"
+              >
+                {copiedKey === 'prompt_neg' ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
+                复制负面 Prompt
+              </button>
+            </div>
+            <pre className="p-3 rounded-lg bg-zinc-900/90 text-xs font-mono text-red-300/90 whitespace-pre-wrap leading-relaxed border border-zinc-800 select-all">
+              {result.negativePrompt}
+            </pre>
+          </div>
+        </div>
+      )}
+
+      {/* Tab 4: Remotion Timeline JSON */}
+      {activeTab === 'remotion' && (
+        <div className="p-4 sm:p-6 space-y-3">
+          <div className="flex items-center justify-between text-xs text-zinc-400">
+            <span>Video-Shotcraft Remotion 动画工程配置文件 (24fps / 2.39:1 宽银幕)</span>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => copyToClipboard(result.shotcraftRemotionTimeline || '', 'remotion_copy')}
+                className="flex items-center gap-1 px-2.5 py-1 text-xs bg-zinc-800 hover:bg-zinc-700 text-zinc-200 rounded border border-zinc-700"
+              >
+                {copiedKey === 'remotion_copy' ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
+                复制 JSON
+              </button>
+              <button
+                onClick={() => downloadFile(result.shotcraftRemotionTimeline || '', 'remotion_timeline.json', 'application/json')}
+                className="flex items-center gap-1 text-amber-400 hover:underline"
+              >
+                <Download className="w-3.5 h-3.5" /> 下载 JSON
+              </button>
             </div>
           </div>
-        )}
+          <pre className="p-4 rounded-xl bg-black border border-zinc-800 text-xs font-mono text-emerald-300 overflow-x-auto max-h-[70vh] whitespace-pre leading-relaxed select-all">
+            {result.shotcraftRemotionTimeline}
+          </pre>
+        </div>
+      )}
 
-        {/* TAB 2: Director Cards Visual View */}
-        {activeTab === 'director' && (
-          <div className="space-y-4">
-            {/* Part 1 Header info */}
-            <div className="p-3 rounded-lg bg-zinc-950 border border-zinc-800 text-xs flex flex-wrap items-center justify-between gap-2">
-              <div className="flex items-center gap-2">
-                <span className="font-semibold text-amber-400">第一部分：分镜动作细化</span>
-                <span className="text-zinc-500">|</span>
-                <span className="text-zinc-300">
-                  调用动作：#{result.triggeredCoreAction?.number} {result.triggeredCoreAction?.name}
-                </span>
-                {result.triggeredUltimate && (
-                  <>
-                    <span className="text-zinc-500">|</span>
-                    <span className="text-red-400 font-semibold">
-                      奥义：{result.triggeredUltimate.name}
-                    </span>
-                  </>
-                )}
-              </div>
-            </div>
-
-            {/* Part 1 Storyboard Shots */}
-            <div className="space-y-3">
-              <div className="p-4 rounded-xl bg-zinc-950 border border-zinc-800 space-y-2">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-blue-400">
-                    [镜头一：起手式 · 空间站位锁定]
-                  </span>
-                  <span className="text-[10px] px-2 py-0.5 rounded bg-zinc-800 text-zinc-400">
-                    垂直锚定 & 几何对角
-                  </span>
-                </div>
-                <div className="text-xs text-zinc-300 space-y-1">
-                  <p>
-                    <span className="text-amber-400 font-semibold">空间站位记忆点：</span>
-                    {result.spatialAnchorsFormatted}
-                  </p>
-                  <p>
-                    <span className="text-blue-300 font-semibold">发力逻辑：</span>
-                    重心自足跟沿踝关节微旋扣死地面，腰背大筋紧绷如张满之角弓，丹田内劲贯通至寸关。
-                  </p>
-                  <p>
-                    <span className="text-purple-300 font-semibold">运镜与质感：</span>
-                    ARRI Alexa 65，35mm 变形镜头，前侧四分之三空中跟拍缓缓推进，保持真实物理微晃。
-                  </p>
-                </div>
-              </div>
-
-              <div className="p-4 rounded-xl bg-zinc-950 border border-zinc-800 space-y-2">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-amber-400">
-                    [镜头二：核心动作交锋 · 动作核心：#{result.triggeredCoreAction?.number}{' '}
-                    {result.triggeredCoreAction?.name}]
-                  </span>
-                  <span className="text-[10px] px-2 py-0.5 rounded bg-amber-950/60 text-amber-400 border border-amber-800/40">
-                    高速追踪锁头链路
-                  </span>
-                </div>
-                <div className="text-xs text-zinc-300 space-y-1.5">
-                  <p>{result.triggeredCoreAction?.description}</p>
-                  <div className="p-2.5 rounded bg-zinc-900 border border-zinc-800 text-[11px] text-zinc-400 space-y-1">
-                    <div>
-                      <span className="text-amber-300 font-semibold">摄影机运动序列：</span>
-                      追击 → 瞬间跟丢 → 越过目标 → 极速甩镜 (Whip Pan) → 重新锁定
-                    </div>
-                    <div>
-                      <span className="text-emerald-300 font-semibold">冲击四要素：</span>
-                      0.1s 闪白冲击帧 (Flash) | 0.3s 镜头震颤 (Screen Shake) | 0.1s 打击微滞 (Hit Stop) | 峰值加速度运动模糊
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {result.triggeredUltimate ? (
-                <div className="p-4 rounded-xl bg-red-950/20 border border-red-900/60 space-y-2.5">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-red-400 flex items-center gap-1.5">
-                      <Flame className="w-4 h-4" />
-                      [镜头三：终极奥义调用 · {result.triggeredUltimate.name}]
-                    </span>
-                    <span className="text-[10px] px-2 py-0.5 rounded bg-red-950 text-red-400 border border-red-800">
-                      坚决剔除镜头运镜与面部神态
-                    </span>
-                  </div>
-
-                  <div className="space-y-1.5 text-xs text-zinc-200 bg-zinc-950/80 p-3 rounded-lg border border-red-900/40">
-                    <p>
-                      <span className="text-amber-400 font-semibold">【空间站位记忆点】：</span>
-                      {result.triggeredUltimate.spatialAnchor}
-                    </p>
-                    <p>
-                      <span className="text-blue-400 font-semibold">【起手式】：</span>
-                      {result.triggeredUltimate.startPose}
-                    </p>
-                    <p>
-                      <span className="text-purple-400 font-semibold">【蓄力中】：</span>
-                      {result.triggeredUltimate.charging}
-                    </p>
-                    <p className="p-2 bg-amber-950/30 rounded border border-amber-900/40 text-amber-300 font-bold">
-                      【口型喊名】：{result.triggeredUltimate.shouting}
-                    </p>
-                    <p>
-                      <span className="text-red-400 font-semibold">【轰然出招】：</span>
-                      {result.triggeredUltimate.execution}
-                    </p>
-                  </div>
-                </div>
-              ) : (
-                <div className="p-4 rounded-xl bg-zinc-950 border border-zinc-800 space-y-2">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-zinc-300">
-                      [镜头三：回马绝杀 · 破势定乾坤]
-                    </span>
-                  </div>
-                  <p className="text-xs text-zinc-300">
-                    借反冲力倒滑稳立于石阶第七级，单手反背，另一手斜指三尺虚空，周身落叶呈圆环状被震飞五米开外，广角运镜伴随受控平缓环绕收招。
-                  </p>
-                </div>
-              )}
-            </div>
+      {/* Tab 5: JianYing Draft Format */}
+      {activeTab === 'jianying' && (
+        <div className="p-4 sm:p-6 space-y-3">
+          <div className="flex items-center justify-between text-xs text-zinc-400">
+            <span>剪映 / CapCut 动作电影分轨草稿结构 (包含视频主轨、音效打击轨、时码卡点)</span>
+            <button
+              onClick={() => copyToClipboard(result.shotcraftJianyingDraft || '', 'jianying_copy')}
+              className="flex items-center gap-1 px-2.5 py-1 text-xs bg-zinc-800 hover:bg-zinc-700 text-zinc-200 rounded border border-zinc-700"
+            >
+              {copiedKey === 'jianying_copy' ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
+              复制分轨描述
+            </button>
           </div>
-        )}
-
-        {/* TAB 3: Prompt Extraction */}
-        {activeTab === 'prompts' && (
-          <div className="space-y-4">
-            {/* 1. English Positive Prompt */}
-            <div className="p-4 rounded-xl bg-zinc-950 border border-zinc-800 space-y-2.5">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-amber-400 flex items-center gap-1.5">
-                  <Camera className="w-3.5 h-3.5 text-blue-400" />
-                  英文通用提示词 (Positive Prompt - 适配 Sora / Kling / Runway / Midjourney)
-                </span>
-                <button
-                  onClick={() => copyToClipboard(result.positivePromptEn, 'pos_en')}
-                  className="text-xs px-2.5 py-1 rounded bg-zinc-800 hover:bg-zinc-700 text-zinc-200 transition flex items-center gap-1 font-medium"
-                >
-                  {copiedKey === 'pos_en' ? (
-                    <Check className="w-3 h-3 text-emerald-400" />
-                  ) : (
-                    <Copy className="w-3 h-3" />
-                  )}
-                  复制英文 Prompt
-                </button>
-              </div>
-              <div className="p-3 bg-zinc-900/80 rounded-lg border border-zinc-800 font-mono text-xs text-zinc-300 leading-relaxed select-all">
-                {result.positivePromptEn}
-              </div>
-            </div>
-
-            {/* 2. Chinese Positive Prompt */}
-            <div className="p-4 rounded-xl bg-zinc-950 border border-zinc-800 space-y-2.5">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-emerald-400 flex items-center gap-1.5">
-                  <Sparkles className="w-3.5 h-3.5 text-emerald-400" />
-                  中文通用提示词 (Positive Prompt - 适配 豆包 / 即梦 / 通义万相)
-                </span>
-                <button
-                  onClick={() => copyToClipboard(result.positivePromptZh, 'pos_zh')}
-                  className="text-xs px-2.5 py-1 rounded bg-zinc-800 hover:bg-zinc-700 text-zinc-200 transition flex items-center gap-1 font-medium"
-                >
-                  {copiedKey === 'pos_zh' ? (
-                    <Check className="w-3 h-3 text-emerald-400" />
-                  ) : (
-                    <Copy className="w-3 h-3" />
-                  )}
-                  复制中文 Prompt
-                </button>
-              </div>
-              <div className="p-3 bg-zinc-900/80 rounded-lg border border-zinc-800 text-xs text-zinc-300 leading-relaxed select-all">
-                {result.positivePromptZh}
-              </div>
-            </div>
-
-            {/* 3. Negative Prompt */}
-            <div className="p-4 rounded-xl bg-red-950/20 border border-red-900/60 space-y-2.5">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-red-400 flex items-center gap-1.5">
-                  <ShieldAlert className="w-3.5 h-3.5" />
-                  电影级负面提示词 (Negative Prompt - 必须固定输出)
-                </span>
-                <button
-                  onClick={() => copyToClipboard(result.negativePrompt, 'neg')}
-                  className="text-xs px-2.5 py-1 rounded bg-zinc-800 hover:bg-zinc-700 text-zinc-200 transition flex items-center gap-1 font-medium"
-                >
-                  {copiedKey === 'neg' ? (
-                    <Check className="w-3 h-3 text-emerald-400" />
-                  ) : (
-                    <Copy className="w-3 h-3" />
-                  )}
-                  复制负向词
-                </button>
-              </div>
-              <div className="p-3 bg-zinc-900/80 rounded-lg border border-red-900/40 font-mono text-xs text-zinc-300 select-all">
-                {result.negativePrompt}
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
+          <pre className="p-4 rounded-xl bg-zinc-950 border border-zinc-800 text-xs font-mono text-zinc-200 overflow-x-auto max-h-[70vh] whitespace-pre-wrap leading-relaxed select-all">
+            {result.shotcraftJianyingDraft}
+          </pre>
+        </div>
+      )}
     </div>
   );
 };

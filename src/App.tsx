@@ -11,7 +11,10 @@ import {
   AlertTriangle,
   ArrowRight,
   ShieldCheck,
-  Camera
+  Camera,
+  Layers,
+  Sliders,
+  Play
 } from 'lucide-react';
 import { Header } from './components/Header';
 import { SpatialAnchoringPanel } from './components/SpatialAnchoringPanel';
@@ -19,13 +22,16 @@ import { CameraControls } from './components/CameraControls';
 import { CoreActionsModal } from './components/CoreActionsModal';
 import { UltimateMoveModal } from './components/UltimateMoveModal';
 import { DoubaoInstallModal } from './components/DoubaoInstallModal';
+import { ShotcraftModal } from './components/ShotcraftModal';
 import { OutputView } from './components/OutputView';
 import { CORE_ACTIONS } from './data/coreActions';
 import { ULTIMATE_MOVES } from './data/ultimateMoves';
+import { SHOT_RECIPES } from './data/shotRecipes';
 import { generateMartialArtsPrompt } from './utils/promptGenerator';
 import {
   CoreAction,
   UltimateMove,
+  ShotRecipe,
   SpatialAnchorSettings,
   CameraSettings,
   ColorGrading,
@@ -42,6 +48,7 @@ export default function App() {
     ULTIMATE_MOVES[6] // 天霜拳 · 傲雪凌霜
   );
   const [isUltimateForced, setIsUltimateForced] = useState<boolean>(true);
+  const [generationMode, setGenerationMode] = useState<'shotcraft_sequence' | 'single_climax'>('shotcraft_sequence');
 
   // Spatial Anchors
   const [spatialAnchors, setSpatialAnchors] = useState<SpatialAnchorSettings>({
@@ -83,7 +90,7 @@ export default function App() {
   const [isCoreModalOpen, setIsCoreModalOpen] = useState(false);
   const [isUltimateModalOpen, setIsUltimateModalOpen] = useState(false);
   const [isDoubaoModalOpen, setIsDoubaoModalOpen] = useState(false);
-  const [showAdvanced, setShowAdvanced] = useState(true);
+  const [isShotcraftModalOpen, setIsShotcraftModalOpen] = useState(false);
 
   // Loading & Output
   const [isGenerating, setIsGenerating] = useState(false);
@@ -125,7 +132,8 @@ export default function App() {
         burstDesc: '暴风暗调逆光剪影'
       },
       isUltimateTriggered: true,
-      useAi: false
+      useAi: false,
+      generationMode: 'shotcraft_sequence'
     });
   });
 
@@ -219,18 +227,23 @@ export default function App() {
 
         const data = await response.json();
         if (data.success && data.output) {
-          // If Gemini succeeded, wrap and parse
           const raw = data.output.trim();
+          const localFallback = generateMartialArtsPrompt({
+            draftText,
+            actionCoreId: selectedCoreAction.id,
+            ultimateMoveId: selectedUltimate?.id,
+            spatialAnchors,
+            camera,
+            colorGrading,
+            isUltimateTriggered: isUltimateForced || Boolean(selectedUltimate),
+            useAi: false,
+            generationMode
+          });
+
           setResult({
+            ...localFallback,
             markdownOutput: raw.startsWith('```markdown') ? raw : `\`\`\`markdown\n${raw}\n\`\`\``,
-            part1Storyboard: '（由 Gemini 3.8 Flash 电影工业级智能扩写生成）',
-            part2Prompt: '（通用 Prompt 已注入 Markdown 交付包）',
-            positivePromptEn:
-              'ARRI Alexa 65, 4K, 24fps, 35mm anamorphic lens, IMAX cinematography, martial arts action cinematography',
-            positivePromptZh: '好莱坞顶级动作电影质感，ARRI Alexa 65，全局空间站位记忆点锁定',
-            negativePrompt:
-              '(cgi, 3d render, unreal engine, video game graphic:1.4), (worst quality, low quality:1.4), deformed limbs, extra fingers, missing limbs, bad anatomy:1.3',
-            spatialAnchorsFormatted: `${spatialAnchors.verticalAnchor} | ${spatialAnchors.environmentalCoordinates}`,
+            part1Storyboard: raw,
             triggeredUltimate: selectedUltimate,
             triggeredCoreAction: selectedCoreAction
           });
@@ -249,14 +262,14 @@ export default function App() {
           camera,
           colorGrading,
           isUltimateTriggered: isUltimateForced || Boolean(selectedUltimate),
-          useAi: false
+          useAi: false,
+          generationMode
         });
         setResult(generated);
         setIsGenerating(false);
       }, 400);
     } catch (e) {
       console.error(e);
-      // Fallback
       const generated = generateMartialArtsPrompt({
         draftText,
         actionCoreId: selectedCoreAction.id,
@@ -265,7 +278,8 @@ export default function App() {
         camera,
         colorGrading,
         isUltimateTriggered: isUltimateForced || Boolean(selectedUltimate),
-        useAi: false
+        useAi: false,
+        generationMode
       });
       setResult(generated);
       setIsGenerating(false);
@@ -279,6 +293,7 @@ export default function App() {
         onOpenDoubaoModal={() => setIsDoubaoModalOpen(true)}
         onOpenUltimateModal={() => setIsUltimateModalOpen(true)}
         onOpenCoreModal={() => setIsCoreModalOpen(true)}
+        onOpenShotcraftModal={() => setIsShotcraftModalOpen(true)}
         onLoadExample={loadExample}
         isAiAvailable={hasGemini}
       />
@@ -316,6 +331,40 @@ export default function App() {
                   placeholder="在此输入您的动作打斗草稿，如：两人在暴雨夜古刹中拔刀对决，刀光撕裂水帘，随后释放终极奥义..."
                   className="w-full text-xs sm:text-sm p-3 bg-zinc-950 border border-zinc-750 rounded-xl text-zinc-100 placeholder-zinc-500 focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500/50 leading-relaxed resize-none"
                 />
+              </div>
+
+              {/* Generation Mode Selector (Shotcraft 5-Shot vs Single) */}
+              <div className="p-2.5 bg-zinc-950 rounded-xl border border-zinc-800/90 flex flex-wrap items-center justify-between gap-2">
+                <div className="flex items-center gap-1.5 text-xs text-zinc-400">
+                  <Layers className="w-3.5 h-3.5 text-amber-400" />
+                  <span className="font-semibold text-zinc-200">分镜生成模式：</span>
+                </div>
+                <div className="flex items-center gap-1 bg-zinc-900 p-1 rounded-lg border border-zinc-800 text-xs">
+                  <button
+                    type="button"
+                    onClick={() => setGenerationMode('shotcraft_sequence')}
+                    className={`px-3 py-1 rounded-md font-medium transition flex items-center gap-1.5 ${
+                      generationMode === 'shotcraft_sequence'
+                        ? 'bg-amber-500 text-zinc-950 font-bold shadow'
+                        : 'text-zinc-400 hover:text-zinc-200'
+                    }`}
+                  >
+                    <Film className="w-3 h-3" />
+                    Shotcraft 5-Shot 动作工坊 (推荐)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setGenerationMode('single_climax')}
+                    className={`px-3 py-1 rounded-md font-medium transition flex items-center gap-1.5 ${
+                      generationMode === 'single_climax'
+                        ? 'bg-amber-500 text-zinc-950 font-bold shadow'
+                        : 'text-zinc-400 hover:text-zinc-200'
+                    }`}
+                  >
+                    <Zap className="w-3 h-3" />
+                    单镜头特写爆发
+                  </button>
+                </div>
               </div>
 
               {/* Quick Tags Injection */}
@@ -424,12 +473,12 @@ export default function App() {
               {isGenerating ? (
                 <>
                   <Loader2 className="w-5 h-5 animate-spin" />
-                  好莱坞导演正在进行高燃动作拆解与镜头扩写...
+                  正在执行 Video-Shotcraft 动作分镜配方组装与扩写...
                 </>
               ) : (
                 <>
                   <Sparkles className="w-5 h-5" />
-                  一键扩写生成 · 好莱坞电影级提示词 (交付 Markdown 代码块)
+                  一键扩写生成 · Video-Shotcraft 电影级动作交付包
                 </>
               )}
             </button>
@@ -445,7 +494,7 @@ export default function App() {
       {/* Footer */}
       <footer className="border-t border-zinc-800/80 bg-zinc-950 py-4 text-center text-xs text-zinc-500">
         <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2">
-          <span>高燃武打提示词优化与扩写专家 · 顶级动作导演与好莱坞AI视觉特效合体打造</span>
+          <span>顶级动作onlyno999 · 融合 Video-Shotcraft 分镜工坊与好莱坞动作导演摄影动力学</span>
           <div className="flex items-center gap-3">
             <button
               onClick={() => setIsDoubaoModalOpen(true)}
@@ -455,23 +504,39 @@ export default function App() {
             </button>
             <span>&bull;</span>
             <button
+              onClick={() => setIsShotcraftModalOpen(true)}
+              className="text-amber-400 hover:underline"
+            >
+              Shotcraft 配方库
+            </button>
+            <span>&bull;</span>
+            <button
               onClick={() => setIsCoreModalOpen(true)}
               className="text-zinc-400 hover:underline"
             >
-              32条动作核心库
+              32条动作库
             </button>
             <span>&bull;</span>
             <button
               onClick={() => setIsUltimateModalOpen(true)}
               className="text-red-400 hover:underline"
             >
-              终极奥义资料库
+              111式终极奥义
             </button>
           </div>
         </div>
       </footer>
 
       {/* Modals */}
+      <ShotcraftModal
+        isOpen={isShotcraftModalOpen}
+        onClose={() => setIsShotcraftModalOpen(false)}
+        onSelectRecipe={(recipe: ShotRecipe) => {
+          setIsShotcraftModalOpen(false);
+          setDraftText((prev) => `${prev} [使用配方卡：${recipe.name}]`);
+        }}
+      />
+
       <CoreActionsModal
         isOpen={isCoreModalOpen}
         onClose={() => setIsCoreModalOpen(false)}

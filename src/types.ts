@@ -49,6 +49,34 @@ export interface ColorGrading {
   burstDesc: string;
 }
 
+export interface ShotRecipe {
+  id: string;
+  name: string;
+  nameEn: string;
+  category: 'establishing' | 'pursuit' | 'clash' | 'climax_ultimate' | 'lingering';
+  purpose: string;
+  energyLevel: 1 | 2 | 3 | 4 | 5; // 1 (low/atmospheric) to 5 (maximum kinetic burst)
+  durationSec: number;
+  framing: string;
+  cameraTrajectory: string;
+  motionRamp: string;
+  soundCues: string[];
+  vfxLayers: string[];
+  remotionKinematics: string;
+}
+
+export interface ShotSequenceItem {
+  shotNumber: number;
+  shotName: string;
+  recipe: ShotRecipe;
+  storyboard: string;
+  spatialAnchor: string;
+  cameraSpecs: string;
+  soundDesign: string;
+  promptEn: string;
+  promptZh: string;
+}
+
 export interface PromptGenerationRequest {
   draftText: string;
   actionCoreId?: string;
@@ -58,6 +86,8 @@ export interface PromptGenerationRequest {
   colorGrading: ColorGrading;
   isUltimateTriggered: boolean;
   useAi: boolean;
+  generationMode?: 'single_climax' | 'shotcraft_sequence';
+  selectedShotRecipes?: string[];
 }
 
 export interface PromptGenerationResponse {
@@ -70,4 +100,8 @@ export interface PromptGenerationResponse {
   spatialAnchorsFormatted: string;
   triggeredUltimate?: UltimateMove;
   triggeredCoreAction?: CoreAction;
+  generationMode: 'single_climax' | 'shotcraft_sequence';
+  shotSequence?: ShotSequenceItem[];
+  shotcraftRemotionTimeline?: string;
+  shotcraftJianyingDraft?: string;
 }
