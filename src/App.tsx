@@ -14,9 +14,12 @@ import {
   Camera,
   Layers,
   Sliders,
-  Play
+  Play,
+  Cpu,
+  RefreshCw
 } from 'lucide-react';
 import { Header } from './components/Header';
+import { FightDirectorPanel } from './components/FightDirectorPanel';
 import { SpatialAnchoringPanel } from './components/SpatialAnchoringPanel';
 import { CameraControls } from './components/CameraControls';
 import { CoreActionsModal } from './components/CoreActionsModal';
@@ -27,6 +30,7 @@ import { OutputView } from './components/OutputView';
 import { CORE_ACTIONS } from './data/coreActions';
 import { ULTIMATE_MOVES } from './data/ultimateMoves';
 import { SHOT_RECIPES } from './data/shotRecipes';
+import { DEFAULT_DIRECTOR_SETTINGS } from './data/fightDirectorData';
 import { generateMartialArtsPrompt } from './utils/promptGenerator';
 import {
   CoreAction,
@@ -35,10 +39,14 @@ import {
   SpatialAnchorSettings,
   CameraSettings,
   ColorGrading,
+  FightDirectorSettings,
   PromptGenerationResponse
 } from './types';
 
 export default function App() {
+  // Fight Director Primary Settings
+  const [directorSettings, setDirectorSettings] = useState<FightDirectorSettings>(DEFAULT_DIRECTOR_SETTINGS);
+
   // Input state
   const [draftText, setDraftText] = useState<string>(
     '两人在雨夜破败古刹中展开生死博杀，一人反手拔刀斩破水帘，另一人纵身凌空下砸，双方在古刹断壁中央释放终极奥义·傲雪凌霜！'
@@ -133,7 +141,8 @@ export default function App() {
       },
       isUltimateTriggered: true,
       useAi: false,
-      generationMode: 'shotcraft_sequence'
+      generationMode: 'shotcraft_sequence',
+      directorSettings: DEFAULT_DIRECTOR_SETTINGS
     });
   });
 
@@ -158,6 +167,24 @@ export default function App() {
       setSelectedCoreAction(CORE_ACTIONS[2]); // #3 凌空飞踢绝杀
       setSelectedUltimate(ULTIMATE_MOVES[6]); // 傲雪凌霜
       setIsUltimateForced(true);
+      setDirectorSettings((prev) => ({
+        ...prev,
+        intensity: 5,
+        characterA: {
+          name: '拳宿 (攻方)',
+          role: 'initiator',
+          weapon: '万古玄冰天霜拳套',
+          style: '大开大合，冰封千里，拳风呼啸如雷',
+          physicalTraits: '白袍狂舞，身形笔立如松'
+        },
+        characterB: {
+          name: '剑仙 (应方)',
+          role: 'reactor',
+          weapon: '烈阳赤霄重剑',
+          style: '沉稳格挡，火浪护体',
+          physicalTraits: '红衣猎猎，单手按剑'
+        }
+      }));
       setSpatialAnchors({
         verticalAnchor: '单足尖轻借枯树残枝最高点，高度离地丈二，白袍垂直下垂',
         environmentalCoordinates: '背负雪山孤殿八角飞檐，正对暴风雪漏斗云下陷中轴',
@@ -180,12 +207,24 @@ export default function App() {
       setSelectedCoreAction(CORE_ACTIONS[7]); // #8 拔刀破空瞬斩
       setSelectedUltimate(undefined);
       setIsUltimateForced(false);
-      setSpatialAnchors({
-        verticalAnchor: '双足死扣凹凸青石地表，下陷三寸，受力点扎实稳固',
-        environmentalCoordinates: '背依残破古刹断壁中轴线，距离中央香炉基座三步之遥',
-        geometricSilhouette: '弓步拧腰呈对角线撕裂姿态，兵刃中轴笔挺，构成强识别几何对冲角',
-        spatialDisruptionField: '半径两米内气流骤然沉降形成绝对真空区，外围尘土漫卷，内层衣袂刚性凝固'
-      });
+      setDirectorSettings((prev) => ({
+        ...prev,
+        intensity: 4,
+        characterA: {
+          name: '黑衣狂刀 (主攻)',
+          role: 'initiator',
+          weapon: '斩马厚刃重刀',
+          style: '霸道刚猛，力劈华山，步伐沉重',
+          physicalTraits: '黑衣斗笠，雨水从帽檐飞溅'
+        },
+        characterB: {
+          name: '青衫剑影 (应招)',
+          role: 'reactor',
+          weapon: '细长苗刀',
+          style: '轻灵疾速，侧身挑刺，游走缠斗',
+          physicalTraits: '青衫短打，步伐轻盈如燕'
+        }
+      }));
     } else if (type === 'chase') {
       setDraftText(
         '月下幽深竹林，青衫琴客虚坐半空三尺，膝横黑檀古琴，指尖按弦狂抹，触发终极奥义·八音裂魂，八道真空音刃无声横切齐腰巨竹！'
@@ -195,6 +234,10 @@ export default function App() {
         ULTIMATE_MOVES.find((m) => m.name.includes('八音裂魂')) || ULTIMATE_MOVES[0]
       );
       setIsUltimateForced(true);
+      setDirectorSettings((prev) => ({
+        ...prev,
+        intensity: 5
+      }));
       setSpatialAnchors({
         verticalAnchor: '盘膝悬空虚坐离地三尺，黑檀古琴平放双膝构成等腰三角形剪影',
         environmentalCoordinates: '竹林中央青石主道圆心，正对幽月斜射角度',
@@ -209,7 +252,6 @@ export default function App() {
     setIsGenerating(true);
 
     try {
-      // 1. Try Gemini API first if configured
       if (hasGemini) {
         const response = await fetch('/api/expand-action', {
           method: 'POST',
@@ -221,7 +263,8 @@ export default function App() {
             spatialAnchors,
             cameraSettings: camera,
             colorGrading,
-            isUltimateTriggered: isUltimateForced || Boolean(selectedUltimate)
+            isUltimateTriggered: isUltimateForced || Boolean(selectedUltimate),
+            directorSettings
           })
         });
 
@@ -237,7 +280,8 @@ export default function App() {
             colorGrading,
             isUltimateTriggered: isUltimateForced || Boolean(selectedUltimate),
             useAi: false,
-            generationMode
+            generationMode,
+            directorSettings
           });
 
           setResult({
@@ -252,7 +296,7 @@ export default function App() {
         }
       }
 
-      // 2. High-speed local industrial engine fallback
+      // High-speed local engine
       setTimeout(() => {
         const generated = generateMartialArtsPrompt({
           draftText,
@@ -263,7 +307,8 @@ export default function App() {
           colorGrading,
           isUltimateTriggered: isUltimateForced || Boolean(selectedUltimate),
           useAi: false,
-          generationMode
+          generationMode,
+          directorSettings
         });
         setResult(generated);
         setIsGenerating(false);
@@ -279,7 +324,8 @@ export default function App() {
         colorGrading,
         isUltimateTriggered: isUltimateForced || Boolean(selectedUltimate),
         useAi: false,
-        generationMode
+        generationMode,
+        directorSettings
       });
       setResult(generated);
       setIsGenerating(false);
@@ -300,9 +346,15 @@ export default function App() {
 
       {/* Main Content Area */}
       <main className="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8 space-y-6">
-        {/* Top Control Bar: Draft & Action Selector */}
+        {/* Primary Agent Control Center: Fight Director */}
+        <FightDirectorPanel
+          settings={directorSettings}
+          onChange={setDirectorSettings}
+        />
+
+        {/* Input & Secondary Modules Area */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-          {/* Left Column: Draft Input & Fast Binding (7 cols) */}
+          {/* Left Column (7 cols) */}
           <div className="lg:col-span-7 space-y-4">
             <div className="bg-zinc-900/90 border border-zinc-800 rounded-xl p-4 sm:p-5 shadow-sm space-y-3.5">
               <div className="flex items-center justify-between">
@@ -333,46 +385,12 @@ export default function App() {
                 />
               </div>
 
-              {/* Generation Mode Selector (Shotcraft 5-Shot vs Single) */}
-              <div className="p-2.5 bg-zinc-950 rounded-xl border border-zinc-800/90 flex flex-wrap items-center justify-between gap-2">
-                <div className="flex items-center gap-1.5 text-xs text-zinc-400">
-                  <Layers className="w-3.5 h-3.5 text-amber-400" />
-                  <span className="font-semibold text-zinc-200">分镜生成模式：</span>
-                </div>
-                <div className="flex items-center gap-1 bg-zinc-900 p-1 rounded-lg border border-zinc-800 text-xs">
-                  <button
-                    type="button"
-                    onClick={() => setGenerationMode('shotcraft_sequence')}
-                    className={`px-3 py-1 rounded-md font-medium transition flex items-center gap-1.5 ${
-                      generationMode === 'shotcraft_sequence'
-                        ? 'bg-amber-500 text-zinc-950 font-bold shadow'
-                        : 'text-zinc-400 hover:text-zinc-200'
-                    }`}
-                  >
-                    <Film className="w-3 h-3" />
-                    Shotcraft 5-Shot 动作工坊 (推荐)
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setGenerationMode('single_climax')}
-                    className={`px-3 py-1 rounded-md font-medium transition flex items-center gap-1.5 ${
-                      generationMode === 'single_climax'
-                        ? 'bg-amber-500 text-zinc-950 font-bold shadow'
-                        : 'text-zinc-400 hover:text-zinc-200'
-                    }`}
-                  >
-                    <Zap className="w-3 h-3" />
-                    单镜头特写爆发
-                  </button>
-                </div>
-              </div>
-
-              {/* Quick Tags Injection */}
+              {/* Quick Action Injection */}
               <div className="space-y-2 pt-1 border-t border-zinc-800/80">
                 <div className="flex items-center justify-between text-xs text-zinc-400">
                   <span className="flex items-center gap-1">
                     <Zap className="w-3.5 h-3.5 text-amber-400" />
-                    快捷动作注入：
+                    次要模块：快捷武打动作注入
                   </span>
                   <button
                     onClick={() => setIsCoreModalOpen(true)}
@@ -473,12 +491,12 @@ export default function App() {
               {isGenerating ? (
                 <>
                   <Loader2 className="w-5 h-5 animate-spin" />
-                  正在执行 Video-Shotcraft 动作分镜配方组装与扩写...
+                  AI 动作导演正在进行因果律推演与分镜头编译...
                 </>
               ) : (
                 <>
                   <Sparkles className="w-5 h-5" />
-                  一键扩写生成 · Video-Shotcraft 电影级动作交付包
+                  一键导演编排 · 输出动作导演工业级交付包
                 </>
               )}
             </button>
@@ -494,13 +512,13 @@ export default function App() {
       {/* Footer */}
       <footer className="border-t border-zinc-800/80 bg-zinc-950 py-4 text-center text-xs text-zinc-500">
         <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2">
-          <span>顶级动作onlyno999 · 融合 Video-Shotcraft 分镜工坊与好莱坞动作导演摄影动力学</span>
+          <span>AI 动作导演 Agent · 主核心：irenerachel/fight-prompt-director | 次要：Video-Shotcraft & 顶级动作</span>
           <div className="flex items-center gap-3">
             <button
               onClick={() => setIsDoubaoModalOpen(true)}
               className="text-amber-400 hover:underline"
             >
-              安装到豆包/Codex
+              安装/导出 Agent Skill
             </button>
             <span>&bull;</span>
             <button

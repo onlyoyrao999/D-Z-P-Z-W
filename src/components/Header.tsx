@@ -1,5 +1,5 @@
 import React from 'react';
-import { Sparkles, Download, Film, Shield, Zap, BookOpen, Layers } from 'lucide-react';
+import { Sparkles, Download, Film, Shield, Zap, BookOpen, Layers, RefreshCw, Cpu } from 'lucide-react';
 
 interface HeaderProps {
   onOpenDoubaoModal: () => void;
@@ -29,10 +29,10 @@ export const Header: React.FC<HeaderProps> = ({
           <div>
             <div className="flex items-center gap-2">
               <h1 className="text-base sm:text-lg font-bold text-zinc-100 tracking-wide">
-                顶级动作onlyno999
+                AI 动作导演 (Fight Prompt Director)
               </h1>
-              <span className="px-2 py-0.5 text-xs font-semibold rounded-full bg-amber-950/90 text-amber-400 border border-amber-800/60 flex items-center gap-1">
-                <Layers className="w-3 h-3" /> Video-Shotcraft 融合版
+              <span className="px-2 py-0.5 text-xs font-semibold rounded-full bg-amber-950/90 text-amber-300 border border-amber-800/60 flex items-center gap-1">
+                <Sparkles className="w-3 h-3" /> 主核心：irenerachel
               </span>
               {isAiAvailable && (
                 <span className="hidden sm:inline-flex px-1.5 py-0.5 text-[11px] font-medium rounded bg-emerald-950/70 text-emerald-400 border border-emerald-800/60">
@@ -41,7 +41,7 @@ export const Header: React.FC<HeaderProps> = ({
               )}
             </div>
             <p className="text-xs text-zinc-400">
-              Shotcraft分镜配方卡 · 32条武打核心库 · 111式终极奥义 · 空间坐标死锁 · 电影工业运镜
+              动作因果律 · 角色动作特征谱 · 180°空间轴线 · Seedance/MiniMax-H3/通用编译 · Shotcraft分镜配方
             </p>
           </div>
         </div>
@@ -49,7 +49,7 @@ export const Header: React.FC<HeaderProps> = ({
         {/* Action Buttons */}
         <div className="flex items-center flex-wrap gap-2">
           {/* Quick preset selector */}
-          <div className="hidden lg:flex items-center bg-zinc-900 border border-zinc-800 rounded-lg p-1 text-xs text-zinc-300">
+          <div className="hidden xl:flex items-center bg-zinc-900 border border-zinc-800 rounded-lg p-1 text-xs text-zinc-300">
             <span className="px-2 text-zinc-500 font-medium">快速预设:</span>
             <button
               onClick={() => onLoadExample('ultimate')}
@@ -73,15 +73,15 @@ export const Header: React.FC<HeaderProps> = ({
 
           <button
             onClick={onOpenShotcraftModal}
-            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-amber-950/40 hover:bg-amber-900/50 text-amber-300 border border-amber-700/50 rounded-lg transition shadow-sm"
+            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-zinc-900 hover:bg-zinc-800 text-zinc-300 border border-zinc-750 rounded-lg transition shadow-sm"
           >
             <Layers className="w-3.5 h-3.5 text-amber-400" />
-            Shotcraft 配方卡
+            次要: Shotcraft 配方
           </button>
 
           <button
             onClick={onOpenCoreModal}
-            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-zinc-900 hover:bg-zinc-800 text-zinc-200 border border-zinc-700/80 rounded-lg transition shadow-sm"
+            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-zinc-900 hover:bg-zinc-800 text-zinc-300 border border-zinc-750 rounded-lg transition shadow-sm"
           >
             <Zap className="w-3.5 h-3.5 text-amber-400" />
             32条动作库
@@ -92,7 +92,7 @@ export const Header: React.FC<HeaderProps> = ({
             className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-red-950/50 hover:bg-red-900/60 text-red-200 border border-red-700/50 rounded-lg transition shadow-sm"
           >
             <BookOpen className="w-3.5 h-3.5 text-red-400" />
-            终极奥义库 (111+)
+            111式奥义
           </button>
 
           <button
@@ -100,7 +100,7 @@ export const Header: React.FC<HeaderProps> = ({
             className="flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold bg-gradient-to-r from-amber-600 to-red-600 hover:from-amber-500 hover:to-red-500 text-white rounded-lg transition shadow-md shadow-red-950/50"
           >
             <Download className="w-3.5 h-3.5" />
-            安装到豆包/Codex
+            导出/安装 Agent Skill
           </button>
         </div>
       </div>

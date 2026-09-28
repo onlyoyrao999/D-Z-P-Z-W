@@ -14,7 +14,11 @@ import {
   Clock,
   Sliders,
   Code,
-  Download
+  Download,
+  Activity,
+  CheckCircle2,
+  Cpu,
+  Users
 } from 'lucide-react';
 import { PromptGenerationResponse } from '../types';
 
@@ -23,7 +27,7 @@ interface Props {
 }
 
 export const OutputView: React.FC<Props> = ({ result }) => {
-  const [activeTab, setActiveTab] = useState<'shotcraft' | 'markdown' | 'prompts' | 'remotion' | 'jianying'>('shotcraft');
+  const [activeTab, setActiveTab] = useState<'director' | 'shotcraft' | 'markdown' | 'prompts' | 'remotion' | 'jianying'>('director');
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
 
   const copyToClipboard = async (text: string, key: string) => {
@@ -73,7 +77,7 @@ export const OutputView: React.FC<Props> = ({ result }) => {
           <div>
             <div className="flex items-center gap-2">
               <h3 className="text-sm sm:text-base font-bold text-zinc-100 flex items-center gap-2">
-                Video-Shotcraft × 顶级动作工业级交付物
+                AI 动作导演工业级交付物
               </h3>
               {result.triggeredUltimate && (
                 <span className="text-[11px] px-2 py-0.5 rounded-full bg-red-950 text-red-400 border border-red-800 flex items-center gap-1">
@@ -82,7 +86,7 @@ export const OutputView: React.FC<Props> = ({ result }) => {
               )}
             </div>
             <span className="text-[11px] text-zinc-400">
-              融合 Shot Recipe Cards 分镜配方体系与四大空间坐标死锁
+              主核心: irenerachel/fight-prompt-director × Video-Shotcraft × 顶级动作
             </span>
           </div>
         </div>
@@ -111,6 +115,17 @@ export const OutputView: React.FC<Props> = ({ result }) => {
       {/* Secondary Tab Bar */}
       <div className="px-3 py-2 bg-zinc-950/80 border-b border-zinc-800 flex items-center gap-1.5 overflow-x-auto text-xs">
         <button
+          onClick={() => setActiveTab('director')}
+          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-medium whitespace-nowrap transition ${
+            activeTab === 'director'
+              ? 'bg-amber-500 text-zinc-950 font-bold shadow-md shadow-amber-500/20'
+              : 'text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800'
+          }`}
+        >
+          <Activity className="w-3.5 h-3.5" />
+          动作导演分析 (Causality & Axis)
+        </button>
+        <button
           onClick={() => setActiveTab('shotcraft')}
           className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-medium whitespace-nowrap transition ${
             activeTab === 'shotcraft'
@@ -119,7 +134,7 @@ export const OutputView: React.FC<Props> = ({ result }) => {
           }`}
         >
           <Layers className="w-3.5 h-3.5" />
-          分镜工坊卡片 (Shot Recipe Cards)
+          分镜配方卡 (Shot Recipes)
         </button>
         <button
           onClick={() => setActiveTab('markdown')}
@@ -167,9 +182,59 @@ export const OutputView: React.FC<Props> = ({ result }) => {
         </button>
       </div>
 
-      {/* Tab 1: Shotcraft Visual Cards */}
-      {activeTab === 'shotcraft' && (
+      {/* Tab 0: Director Analysis */}
+      {activeTab === 'director' && result.directorAnalysis && (
         <div className="p-4 sm:p-6 space-y-4 max-h-[75vh] overflow-y-auto">
+          {/* Target Model Badge */}
+          <div className="p-3.5 rounded-xl bg-zinc-950 border border-zinc-800 flex items-center justify-between gap-3 text-xs">
+            <div className="flex items-center gap-2">
+              <Cpu className="w-4 h-4 text-cyan-400" />
+              <span className="font-bold text-zinc-200">目标编译引擎:</span>
+              <span className="text-amber-400 font-semibold">{result.directorAnalysis.targetModelCompilation}</span>
+            </div>
+            <span className="text-[11px] px-2 py-0.5 rounded bg-emerald-950 text-emerald-400 border border-emerald-800">
+              因果律已闭环
+            </span>
+          </div>
+
+          {/* Action Causality Chain */}
+          <div className="p-4 rounded-xl bg-zinc-950/80 border border-zinc-800 space-y-2.5">
+            <div className="text-xs font-bold text-amber-400 flex items-center gap-1.5">
+              <Activity className="w-4 h-4" />
+              动作因果律全链路闭环 (Action Causality Chain)
+            </div>
+            <div className="space-y-1.5">
+              {result.directorAnalysis.actionCausalityChain.map((step, idx) => (
+                <div key={idx} className="text-xs text-zinc-300 p-2 rounded-lg bg-zinc-900/60 border border-zinc-800/60 flex items-start gap-2">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0 mt-0.5" />
+                  <span>{step}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* 180 Axis & Character Profiles */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+            <div className="p-3.5 rounded-xl bg-zinc-950/80 border border-zinc-800 space-y-1.5">
+              <div className="text-zinc-400 font-semibold flex items-center gap-1.5">
+                <Sliders className="w-3.5 h-3.5 text-cyan-400" /> 180° 空间轴线与方位死锁
+              </div>
+              <p className="text-zinc-300 leading-relaxed font-mono text-[11px]">
+                {result.directorAnalysis.spatialAxisCheck}
+              </p>
+            </div>
+
+            <div className="p-3.5 rounded-xl bg-zinc-950/80 border border-zinc-800 space-y-1.5">
+              <div className="text-zinc-400 font-semibold flex items-center gap-1.5">
+                <Users className="w-3.5 h-3.5 text-emerald-400" /> 角色特征谱差异 (Profiles)
+              </div>
+              <div className="text-zinc-300 space-y-1 text-[11px]">
+                <div>• {result.directorAnalysis.characterAChoreography}</div>
+                <div>• {result.directorAnalysis.characterBChoreography}</div>
+              </div>
+            </div>
+          </div>
+
           {/* Spatial Anchor Pill Bar */}
           <div className="p-3.5 rounded-xl bg-zinc-950 border border-zinc-800 flex flex-wrap items-center justify-between gap-3 text-xs">
             <div className="flex items-center gap-2">
@@ -185,8 +250,12 @@ export const OutputView: React.FC<Props> = ({ result }) => {
               {copiedKey === 'spatial' ? '已复制' : '复制空间基准'}
             </button>
           </div>
+        </div>
+      )}
 
-          {/* Shot Sequence Cards */}
+      {/* Tab 1: Shotcraft Visual Cards */}
+      {activeTab === 'shotcraft' && (
+        <div className="p-4 sm:p-6 space-y-4 max-h-[75vh] overflow-y-auto">
           {result.shotSequence && result.shotSequence.length > 0 ? (
             <div className="space-y-4">
               {result.shotSequence.map((shot) => (
@@ -196,8 +265,8 @@ export const OutputView: React.FC<Props> = ({ result }) => {
                 >
                   <div className="flex flex-wrap items-center justify-between gap-2 border-b border-zinc-800/80 pb-2.5">
                     <div className="flex items-center gap-2.5">
-                      <span className="w-6 h-6 rounded-lg bg-amber-500/20 border border-amber-500/40 text-amber-400 font-bold text-xs flex items-center justify-center">
-                        {shot.shotNumber}
+                      <span className="px-2 py-0.5 rounded-lg bg-cyan-950/80 border border-cyan-700/60 text-cyan-300 font-mono text-xs">
+                        {shot.timecodeBlock}
                       </span>
                       <h4 className="font-bold text-sm sm:text-base text-zinc-100">
                         {shot.shotName}
@@ -217,14 +286,14 @@ export const OutputView: React.FC<Props> = ({ result }) => {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
                     <div className="p-3 rounded-xl bg-zinc-900/60 border border-zinc-800/70">
                       <div className="text-zinc-400 font-semibold mb-1 flex items-center gap-1.5">
-                        <Film className="w-3.5 h-3.5 text-amber-400" /> 分镜剧本发力规划
+                        <Film className="w-3.5 h-3.5 text-amber-400" /> 动作发力与因果律
                       </div>
                       <p className="text-zinc-200 leading-relaxed">{shot.storyboard}</p>
                     </div>
 
                     <div className="p-3 rounded-xl bg-zinc-900/60 border border-zinc-800/70">
                       <div className="text-zinc-400 font-semibold mb-1 flex items-center gap-1.5">
-                        <Sliders className="w-3.5 h-3.5 text-cyan-400" /> 运镜与景别构图
+                        <Sliders className="w-3.5 h-3.5 text-cyan-400" /> 摄影机职责与运镜
                       </div>
                       <p className="text-zinc-200 leading-relaxed font-mono">{shot.cameraSpecs}</p>
                     </div>
@@ -235,7 +304,7 @@ export const OutputView: React.FC<Props> = ({ result }) => {
                     <div className="p-2.5 rounded-xl bg-zinc-900/40 border border-zinc-800/60 flex items-start gap-2">
                       <Volume2 className="w-3.5 h-3.5 text-red-400 shrink-0 mt-0.5" />
                       <div>
-                        <span className="font-semibold text-zinc-400">音效设计 (Sound Cues): </span>
+                        <span className="font-semibold text-zinc-400">音效设计 (Sound Stems): </span>
                         <span className="text-zinc-300">{shot.soundDesign}</span>
                       </div>
                     </div>
@@ -265,7 +334,7 @@ export const OutputView: React.FC<Props> = ({ result }) => {
           <div className="flex items-center justify-between text-xs text-zinc-400">
             <span>标准单代码块交付格式 (包裹于单一 ```markdown 代码块中)</span>
             <button
-              onClick={() => downloadFile(result.markdownOutput, '顶级动作onlyno999_分镜交付包.md')}
+              onClick={() => downloadFile(result.markdownOutput, 'AI动作导演_分镜交付包.md')}
               className="flex items-center gap-1 text-amber-400 hover:underline"
             >
               <Download className="w-3.5 h-3.5" /> 下载 .md 文件

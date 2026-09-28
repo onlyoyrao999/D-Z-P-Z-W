@@ -75,6 +75,31 @@ export interface ShotSequenceItem {
   soundDesign: string;
   promptEn: string;
   promptZh: string;
+  timecodeBlock?: string; // Seedance/MiniMax-H3 formatted timing
+}
+
+export type TargetVideoModel = 'seedance' | 'minimax_h3' | 'universal';
+
+export type ActionIntensityLevel = 1 | 2 | 3 | 4 | 5;
+
+export interface CharacterProfile {
+  name: string;
+  role: 'initiator' | 'reactor' | 'balanced';
+  weapon: string;
+  style: string;
+  physicalTraits: string;
+}
+
+export interface FightDirectorSettings {
+  targetModel: TargetVideoModel;
+  intensity: ActionIntensityLevel;
+  characterA: CharacterProfile;
+  characterB: CharacterProfile;
+  actionCausality: boolean; // 动作因果律 (攻防受力与反作用力)
+  spatialAxisRule: boolean; // 空间方位与180度轴线铁律
+  cameraResponsibility: string; // 摄影机主观/客观追击职责
+  crossShotContinuity: boolean; // 跨镜头伤痕与战损连续性
+  directorVersion: string;
 }
 
 export interface PromptGenerationRequest {
@@ -88,6 +113,7 @@ export interface PromptGenerationRequest {
   useAi: boolean;
   generationMode?: 'single_climax' | 'shotcraft_sequence';
   selectedShotRecipes?: string[];
+  directorSettings?: FightDirectorSettings;
 }
 
 export interface PromptGenerationResponse {
@@ -104,4 +130,13 @@ export interface PromptGenerationResponse {
   shotSequence?: ShotSequenceItem[];
   shotcraftRemotionTimeline?: string;
   shotcraftJianyingDraft?: string;
+  directorAnalysis?: {
+    primarySkill: string;
+    secondarySkills: string[];
+    actionCausalityChain: string[];
+    spatialAxisCheck: string;
+    targetModelCompilation: string;
+    characterAChoreography: string;
+    characterBChoreography: string;
+  };
 }

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { X, Copy, Check, Download, Sparkles, ExternalLink } from 'lucide-react';
+import { X, Copy, Check, Sparkles, Terminal, FileText, Download, CheckCircle2, ExternalLink } from 'lucide-react';
 import { DOUBAO_CODEX_SKILL_MD } from '../data/skillTemplate';
+import { FIGHT_DIRECTOR_META } from '../data/fightDirectorData';
 
 interface Props {
   isOpen: boolean;
@@ -16,7 +17,7 @@ export const DoubaoInstallModal: React.FC<Props> = ({ isOpen, onClose }) => {
     try {
       await navigator.clipboard.writeText(DOUBAO_CODEX_SKILL_MD);
       setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
+      setTimeout(() => setCopied(false), 2500);
     } catch (e) {
       console.error(e);
     }
@@ -25,10 +26,10 @@ export const DoubaoInstallModal: React.FC<Props> = ({ isOpen, onClose }) => {
   const handleDownload = () => {
     const blob = new Blob([DOUBAO_CODEX_SKILL_MD], { type: 'text/markdown;charset=utf-8' });
     const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = '动作武打戏自动填充-Skill-工业级.md';
-    link.click();
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'AI动作导演_FightPromptDirector_Skill.md';
+    a.click();
     URL.revokeObjectURL(url);
   };
 
@@ -43,10 +44,10 @@ export const DoubaoInstallModal: React.FC<Props> = ({ isOpen, onClose }) => {
             </div>
             <div>
               <h2 className="text-base sm:text-lg font-bold text-zinc-100 flex items-center gap-2">
-                安装到 豆包 (Doubao) / Codex / GPTs / Claude
+                导出 / 安装 AI 动作导演 Skill
               </h2>
               <p className="text-xs text-zinc-400">
-                支持直接将【顶级动作onlyno999】（作者：onlyno999）完整工业级 Skill 注入任何 AI 智能体
+                主核心：{FIGHT_DIRECTOR_META.primarySkillName} (irenerachel) × Video-Shotcraft × 顶级动作
               </p>
             </div>
           </div>
@@ -65,9 +66,9 @@ export const DoubaoInstallModal: React.FC<Props> = ({ isOpen, onClose }) => {
               1
             </span>
             <div>
-              <div className="font-semibold text-zinc-200">复制下方 Skill 指令</div>
+              <div className="font-semibold text-zinc-200">复制下方 Skill 完整指令</div>
               <div className="text-[11px] text-zinc-400">
-                包含完整角色定义、32核心库与终极奥义法则
+                包含动作因果律、180°轴线、Shotcraft配方与111式奥义
               </div>
             </div>
           </div>
@@ -77,9 +78,9 @@ export const DoubaoInstallModal: React.FC<Props> = ({ isOpen, onClose }) => {
               2
             </span>
             <div>
-              <div className="font-semibold text-zinc-200">粘贴至豆包/智能体设定</div>
+              <div className="font-semibold text-zinc-200">粘贴至智能体 System Prompt</div>
               <div className="text-[11px] text-zinc-400">
-                进入豆包“创建智能体”或 Codex 的“Prompt/System Instructions”
+                进入豆包“创建智能体”、Coze、Dify 或 Codex 的 System Instructions
               </div>
             </div>
           </div>
@@ -89,44 +90,52 @@ export const DoubaoInstallModal: React.FC<Props> = ({ isOpen, onClose }) => {
               3
             </span>
             <div>
-              <div className="font-semibold text-zinc-200">随时输入草稿即可自动扩写</div>
+              <div className="font-semibold text-zinc-200">直接对话生成导演级分镜</div>
               <div className="text-[11px] text-zinc-400">
-                支持纯文字草稿或图片参考，严格按工业级格式交付
+                输入任何打斗草稿，自动编译为 Seedance/MiniMax/Sora 交付包
               </div>
             </div>
           </div>
         </div>
 
-        {/* Markdown Content Area */}
-        <div className="p-4 sm:p-5 overflow-y-auto flex-1 bg-zinc-950/90 font-mono text-xs text-zinc-300 leading-relaxed">
-          <pre className="whitespace-pre-wrap select-all">{DOUBAO_CODEX_SKILL_MD}</pre>
+        {/* Code Preview Box */}
+        <div className="flex-1 p-4 overflow-y-auto bg-zinc-950/80">
+          <div className="relative">
+            <pre className="p-4 rounded-xl bg-black border border-zinc-800 text-xs font-mono text-zinc-300 overflow-x-auto whitespace-pre leading-relaxed select-all">
+              {DOUBAO_CODEX_SKILL_MD}
+            </pre>
+          </div>
         </div>
 
-        {/* Footer Actions */}
-        <div className="p-4 border-t border-zinc-800 bg-zinc-900/60 flex items-center justify-between">
-          <span className="text-xs text-zinc-400 hidden sm:inline">
-            共收录 32 式动作核心、50+ 终极奥义、四大空间锚定法则与 Hollywood 运镜标准
-          </span>
+        {/* Action Footer */}
+        <div className="p-4 border-t border-zinc-800 bg-zinc-950 flex flex-wrap items-center justify-between gap-3">
+          <div className="text-xs text-zinc-500 flex items-center gap-2">
+            <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+            <span>兼容 豆包 / Codex / GPTs / Claude / Coze / Dify</span>
+          </div>
 
-          <div className="flex items-center gap-2.5 ml-auto">
+          <div className="flex items-center gap-2.5">
             <button
               onClick={handleDownload}
-              className="flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold bg-zinc-800 hover:bg-zinc-700 text-zinc-200 rounded-lg transition"
+              className="flex items-center gap-1.5 px-3.5 py-2 text-xs font-medium bg-zinc-900 hover:bg-zinc-800 text-zinc-300 border border-zinc-700 rounded-xl transition"
             >
-              <Download className="w-3.5 h-3.5" />
-              下载 .md 文件
+              <Download className="w-4 h-4" />
+              下载 SKILL.md
             </button>
+
             <button
               onClick={handleCopy}
-              className="flex items-center gap-1.5 px-4 py-1.5 text-xs font-bold bg-gradient-to-r from-amber-500 to-red-500 hover:from-amber-400 hover:to-red-400 text-black rounded-lg transition shadow-md shadow-amber-950/40"
+              className="flex items-center gap-1.5 px-5 py-2 text-xs font-bold bg-gradient-to-r from-amber-500 via-amber-600 to-red-600 hover:from-amber-400 hover:to-red-500 text-black rounded-xl transition shadow-lg shadow-amber-950/40"
             >
               {copied ? (
                 <>
-                  <Check className="w-4 h-4" /> 已复制到剪贴板！
+                  <Check className="w-4 h-4 text-black" />
+                  已复制到剪贴板！
                 </>
               ) : (
                 <>
-                  <Copy className="w-4 h-4" /> 一键全选复制 Skill
+                  <Copy className="w-4 h-4" />
+                  一键复制完整 Agent Skill
                 </>
               )}
             </button>
